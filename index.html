@@ -63,6 +63,25 @@
   .md hr { border:0; border-top:1px solid var(--line); margin:1.5em 0; }
   .md img { max-width:100%; }
   .status { color:var(--muted); }
+
+  /* prompt helper */
+  #helper[hidden], .plane[hidden] { display:none; }
+  .helper-grid { display:grid; gap:8px; margin:12px 0; }
+  .plane { display:grid; grid-template-columns:70px 1fr 150px; gap:8px; align-items:center; }
+  .plane .num { color:var(--muted); font-family:ui-monospace,Menlo,monospace; }
+  .helper input, .helper select, .helper textarea { width:100%; background:var(--bg); color:var(--fg); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font:inherit; }
+  .helper label { display:block; font-weight:600; margin:14px 0 6px; }
+  .helper .hint { color:var(--muted); font-size:.88rem; margin:4px 0 0; }
+  .helper .row-head { color:var(--muted); font-size:.85rem; display:grid; grid-template-columns:70px 1fr 150px; gap:8px; }
+  .helper textarea { min-height:320px; font-family:ui-monospace,Menlo,monospace; font-size:.85rem; line-height:1.5; }
+  .btns { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  .btn { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:8px 14px; cursor:pointer; font:inherit; }
+  .btn.ghost { background:none; color:var(--fg); border:1px solid var(--line); }
+  @media (max-width:560px) {
+    .plane, .helper .row-head { grid-template-columns:1fr; }
+    .plane .num { display:none; }
+    .helper .row-head { display:none; }
+  }
   .fallback { color:var(--muted); font-size:.95rem; }
 
   footer { text-align:center; color:var(--muted); font-size:.85rem; padding:24px 16px; }
@@ -77,6 +96,7 @@
       <a href="#/" data-page="home">🏠 Home</a>
       <a href="#/split-panes" data-page="split-panes">🪟 Split panes</a>
       <a href="#/use-cases" data-page="use-cases">💡 Use cases</a>
+      <a href="#/prompt-helper" data-page="prompt-helper">🧩 Prompt helper</a>
       <a href="#/how-i-did-it" data-page="how-i-did-it">🛠️ How I did it</a>
       <a href="#/agents" data-page="agents">🤖 AGENTS</a>
       <a href="#/readme" data-page="readme">📖 README</a>
@@ -128,6 +148,37 @@ herdr pane split w4:p2 --direction down  --ratio 0.5</code></pre>
       <p><a href="https://github.com/rifaterdemsahin/herdr">📦 Repo</a> · <a href="https://herdr.dev">🐴 herdr.dev</a></p>
     </section>
   </div>
+
+  <!-- Prompt helper -->
+  <section id="helper" class="card helper" hidden>
+    <h1>🧩 Prompt helper</h1>
+    <p class="sub">🛠️ Build a prompt that makes Claude Code split herdr into planes and start one agent per plane.</p>
+
+    <label for="h-count">🔢 Number of planes</label>
+    <select id="h-count">
+      <option value="2">2</option><option value="3">3</option><option value="4">4</option>
+      <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8" selected>8</option>
+    </select>
+
+    <label>🪟 Planes, agent and task</label>
+    <div class="row-head"><span>#</span><span>📛 Plane name</span><span>🤖 Agent</span></div>
+    <div id="h-planes" class="helper-grid"></div>
+    <p class="hint">🧠 Agent options: <b>claude</b>, <b>antigravity</b> (herdr kind <code>agy</code>), <b>kilo</b>, <b>mimo</b> (not a herdr agent kind, so it runs as a plain command in its pane). Choose "none" to leave a plane empty.</p>
+
+    <label for="h-ratio">📏 Layout hint</label>
+    <input id="h-ratio" value="Split into an even grid. Avoid panes narrower than about 40 columns or shorter than 10 rows.">
+
+    <label for="h-extra">📝 Extra instructions (optional)</label>
+    <input id="h-extra" placeholder="e.g. Use the project in ~/Projects/herdr. Report each pane ID.">
+
+    <label for="h-out">✨ Generated prompt</label>
+    <textarea id="h-out" readonly></textarea>
+    <div class="btns">
+      <button class="btn" id="h-copy" type="button">📋 Copy prompt</button>
+      <button class="btn ghost" id="h-reset" type="button">↩️ Reset example</button>
+    </div>
+    <p class="hint">📎 Paste it into Claude Code in your herdr pane. It will read the pane IDs from the JSON it gets back.</p>
+  </section>
 
   <!-- Markdown pages are rendered into here -->
   <article id="doc" class="md" hidden>
@@ -187,12 +238,14 @@ herdr pane split w4:p2 --direction down  --ratio 0.5</code></pre>
   function showHome() {
     home.hidden = false;
     doc.hidden = true;
+    helper.hidden = true;
     document.title = 'herdr notes';
   }
 
   function showPage(slug) {
     var page = PAGES[slug];
     home.hidden = true;
+    helper.hidden = true;
     doc.hidden = false;
     content.innerHTML = '';
     fallback.hidden = true;
@@ -230,11 +283,156 @@ herdr pane split w4:p2 --direction down  --ratio 0.5</code></pre>
     var slug = currentSlug();
     markActive(slug || 'home');
     if (!slug || slug === 'home') { showHome(); return; }
+    if (slug === 'prompt-helper') { showHelper(); return; }
     if (PAGES[slug]) { showPage(slug); return; }
     location.hash = '#/';
   }
 
   window.addEventListener('hashchange', route);
+
+  // ---- Prompt helper ----
+  var helper = document.getElementById('helper');
+  var hCount = document.getElementById('h-count');
+  var hPlanes = document.getElementById('h-planes');
+  var hRatio = document.getElementById('h-ratio');
+  var hExtra = document.getElementById('h-extra');
+  var hOut = document.getElementById('h-out');
+
+  var AGENTS = [
+    { value: 'none', label: '— none —' },
+    { value: 'claude', label: 'claude' },
+    { value: 'antigravity', label: 'antigravity (agy)' },
+    { value: 'kilo', label: 'kilo' },
+    { value: 'mimo', label: 'mimo (plain command)' }
+  ];
+  var DEFAULT_PLANES = ['real', 'environment', 'simulation', 'ui', 'symbols', 'semblance', 'test', 'orchestrator'];
+  // Agents cycle one by one: claude, antigravity, kilo, mimo, then again.
+  var CYCLE = ['claude', 'antigravity', 'kilo', 'mimo'];
+
+  function buildPlaneRows() {
+    hPlanes.innerHTML = '';
+    DEFAULT_PLANES.forEach(function (name, i) {
+      var row = document.createElement('div');
+      row.className = 'plane';
+      row.dataset.index = i;
+      var num = document.createElement('span');
+      num.className = 'num';
+      num.textContent = (i + 1) + '';
+      var nameIn = document.createElement('input');
+      nameIn.type = 'text';
+      nameIn.value = name;
+      nameIn.dataset.role = 'name';
+      nameIn.setAttribute('aria-label', 'Plane ' + (i + 1) + ' name');
+      var sel = document.createElement('select');
+      sel.dataset.role = 'agent';
+      sel.setAttribute('aria-label', 'Plane ' + (i + 1) + ' agent');
+      AGENTS.forEach(function (a) {
+        var o = document.createElement('option');
+        o.value = a.value;
+        o.textContent = a.label;
+        sel.appendChild(o);
+      });
+      sel.value = CYCLE[i % CYCLE.length];
+      row.appendChild(num);
+      row.appendChild(nameIn);
+      row.appendChild(sel);
+      hPlanes.appendChild(row);
+    });
+    applyCount();
+  }
+
+  function applyCount() {
+    var n = parseInt(hCount.value, 10);
+    Array.prototype.forEach.call(hPlanes.children, function (row, i) {
+      row.hidden = i >= n;
+    });
+    generate();
+  }
+
+  function readPlanes() {
+    var n = parseInt(hCount.value, 10);
+    var out = [];
+    Array.prototype.forEach.call(hPlanes.children, function (row, i) {
+      if (i >= n) return;
+      var name = row.querySelector('[data-role="name"]').value.trim() || ('plane' + (i + 1));
+      var agent = row.querySelector('[data-role="agent"]').value;
+      out.push({ name: name, agent: agent });
+    });
+    return out;
+  }
+
+  var KIND = { claude: '--kind claude', antigravity: '--kind agy', kilo: '--kind kilo' };
+
+  function generate() {
+    var planes = readPlanes();
+    var n = planes.length;
+    var lines = [];
+    lines.push('Use herdr to split my current pane into ' + n + ' planes, one per name below.');
+    lines.push('Layout: ' + (hRatio.value.trim() || 'Split into an even grid.'));
+    lines.push('Create each split with: herdr pane split --current --direction right|down --cwd "$PWD" --no-focus');
+    lines.push('Read each new pane ID from .result.pane.pane_id in the JSON. Do not guess IDs.');
+    lines.push('');
+    lines.push('Planes:');
+    planes.forEach(function (p, i) {
+      lines.push((i + 1) + '. ' + p.name + ' → ' + (p.agent === 'none' ? 'no agent' : p.agent));
+    });
+    lines.push('');
+    var agents = planes.filter(function (p) { return p.agent !== 'none'; });
+    if (agents.length) {
+      lines.push('Start the agents ONE AT A TIME, in plane order. Wait until each one is idle before starting the next:');
+      agents.forEach(function (p, i) {
+        var task = 'Own the ' + p.name + ' plane and report what you did there.';
+        var cmd;
+        if (p.agent === 'mimo') {
+          cmd = 'mimo is not a herdr agent kind, so run it as a plain command: herdr pane run <pane-id> "mimo", then read it with herdr pane read <pane-id> --source recent-unwrapped';
+        } else {
+          cmd = 'herdr agent start ' + p.name + ' ' + KIND[p.agent] + ' --pane <pane-id>';
+        }
+        lines.push('  ' + (i + 1) + '. ' + p.name + ' (' + p.agent + '): ' + cmd);
+        if (p.agent !== 'mimo') {
+          lines.push('     Then send its task: herdr agent prompt ' + p.name + ' "' + task + '" --wait --timeout 120000');
+        } else {
+          lines.push('     Then send its task by typing it into the pane: herdr pane send-text <pane-id> "' + task + '"');
+        }
+      });
+      lines.push('');
+    }
+    lines.push('Rules:');
+    lines.push('- If an agent is blocked on an approval or question, show me the prompt before answering it.');
+    lines.push('- Do not close or refocus panes I did not ask you to touch.');
+    lines.push('- Check first with: test "${HERDR_ENV:-}" = 1');
+    lines.push('- Finish by listing each plane with its name, pane ID and agent state.');
+    if (hExtra.value.trim()) { lines.push(''); lines.push(hExtra.value.trim()); }
+    hOut.value = lines.join('\n');
+  }
+
+  function showHelper() {
+    home.hidden = true;
+    doc.hidden = true;
+    helper.hidden = false;
+    document.title = '🧩 Prompt helper · herdr notes';
+    window.scrollTo(0, 0);
+    if (!hPlanes.children.length) buildPlaneRows();
+  }
+
+  hCount.addEventListener('change', applyCount);
+  hRatio.addEventListener('input', generate);
+  hExtra.addEventListener('input', generate);
+  hPlanes.addEventListener('input', generate);
+  hPlanes.addEventListener('change', generate);
+  document.getElementById('h-reset').addEventListener('click', function () {
+    hCount.value = '8';
+    hRatio.value = 'Split into an even grid. Avoid panes narrower than about 40 columns or shorter than 10 rows.';
+    hExtra.value = '';
+    buildPlaneRows();
+  });
+  document.getElementById('h-copy').addEventListener('click', function () {
+    var btn = this;
+    var done = function () { btn.textContent = '✅ Copied'; setTimeout(function () { btn.textContent = '📋 Copy prompt'; }, 1500); };
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(hOut.value).then(done, function () { hOut.select(); document.execCommand('copy'); done(); });
+    } else { hOut.select(); document.execCommand('copy'); done(); }
+  });
 
   // Theme toggle: auto -> dark -> light -> auto (stored per browser, purely cosmetic).
   var themeBtn = document.getElementById('theme');
