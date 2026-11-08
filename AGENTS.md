@@ -4,7 +4,7 @@ Guidance for AI agents working in this repo.
 
 ## 📌 Project
 - 🐴 `herdr` – terminal workspace manager for AI coding agents (`/opt/homebrew/bin/herdr`).
-- 🔒 GitHub: private repo `rifaterdemsahin/herdr`, branch `main`.
+- 🌍 GitHub: public repo `rifaterdemsahin/herdr`, branch `main`.
 
 ## 📚 Files
 - 📖 `README.md` – overview and links
@@ -18,3 +18,4 @@ Guidance for AI agents working in this repo.
 - 💾 After doc changes: commit and push to `main`.
 - 🌐 "Open local" means opening in Google Chrome: `open -a "Google Chrome" <url>`.
 - 🔗 Commits end with the `Co-Authored-By` attribution line.
+- 🗣️ Reply with emojis. Pages site: https://rifaterdemsahin.github.io/herdr/ (served from `main`, `/`).
