@@ -17,7 +17,8 @@ Guidance for AI agents working in this repo.
 - 😀 **Use emojis** in markdown docs: in headings, table cells and list items.
 - ✂️ **Splitting panes:** `herdr pane split --current --direction <right|down> [--ratio F] [--cwd PATH]`. Details in `SPLIT_PANES.md`.
 - 🧪 Don't run `herdr pane split` just to demo it; it changes the user's live session. Document it instead.
-- 💾 After doc changes: commit and push to `main`.
+- 💾 **Always commit and push after every change** (docs, `index.html`, anything in the repo) to `main`. Don't wait to be asked. The Pages site deploys from `main`, so a push is the deploy. Check the live site after pushing when the change is user-visible.
+- 🧾 Commit messages end with the `Co-Authored-By` attribution line.
 - 🌐 "Open local" means opening in Google Chrome: `open -a "Google Chrome" <url>`.
 - 🔗 Commits end with the `Co-Authored-By` attribution line.
 - 🗣️ Reply with emojis. Pages site: https://rifaterdemsahin.github.io/herdr/ (served from `main`, `/`).
