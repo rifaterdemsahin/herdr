@@ -10,6 +10,8 @@ Guidance for AI agents working in this repo.
 - 📖 `README.md` – overview and links
 - 🛠️ `HOW_I_DID_IT.md` – how the repo was created
 - 🪟 `SPLIT_PANES.md` – how to split panes (`herdr pane split`)
+- 💡 `USE_CASES.md` – prompts and recipes for commanding Claude Code to use herdr
+- 🌐 `index.html` – the Pages site: top menu, client-side markdown renderer that loads the `.md` files above
 
 ## ✅ Conventions (remember these)
 - 😀 **Use emojis** in markdown docs: in headings, table cells and list items.

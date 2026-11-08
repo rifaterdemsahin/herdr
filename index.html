@@ -3,14 +3,32 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>herdr 2x2 split</title>
+<title>herdr notes</title>
 <style>
-  :root { --bg:#0f1117; --fg:#e6e8ee; --muted:#9aa3b2; --card:#181b24; --accent:#7aa2f7; --line:#2a2f3d; }
+  :root { --bg:#0f1117; --fg:#e6e8ee; --muted:#9aa3b2; --card:#181b24; --accent:#7aa2f7; --line:#2a2f3d; --nav:#11141c; }
   @media (prefers-color-scheme: light) {
-    :root { --bg:#f6f7fb; --fg:#1b1e27; --muted:#5b6475; --card:#fff; --accent:#3b5bdb; --line:#d8dce6; }
+    :root { --bg:#f6f7fb; --fg:#1b1e27; --muted:#5b6475; --card:#fff; --accent:#3b5bdb; --line:#d8dce6; --nav:#ffffff; }
   }
+  :root[data-theme="dark"] { --bg:#0f1117; --fg:#e6e8ee; --muted:#9aa3b2; --card:#181b24; --accent:#7aa2f7; --line:#2a2f3d; --nav:#11141c; }
+  :root[data-theme="light"] { --bg:#f6f7fb; --fg:#1b1e27; --muted:#5b6475; --card:#fff; --accent:#3b5bdb; --line:#d8dce6; --nav:#ffffff; }
+
   * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
   body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.6 system-ui,sans-serif; }
+  a { color:var(--accent); }
+  code { font-family:ui-monospace,Menlo,monospace; }
+
+  /* top menu */
+  header.top { position:sticky; top:0; z-index:10; background:var(--nav); border-bottom:1px solid var(--line); }
+  .bar { max-width:900px; margin:0 auto; padding:0 16px; display:flex; align-items:center; gap:8px; }
+  .brand { font-weight:700; text-decoration:none; color:var(--fg); padding:12px 8px 12px 0; white-space:nowrap; }
+  nav.menu { display:flex; gap:4px; overflow-x:auto; scrollbar-width:none; flex:1; }
+  nav.menu::-webkit-scrollbar { display:none; }
+  nav.menu a { color:var(--muted); text-decoration:none; padding:12px 10px; white-space:nowrap; border-bottom:2px solid transparent; font-size:.92rem; }
+  nav.menu a:hover { color:var(--fg); }
+  nav.menu a.active { color:var(--accent); border-bottom-color:var(--accent); }
+  .theme { background:none; border:1px solid var(--line); color:var(--fg); border-radius:8px; padding:4px 8px; cursor:pointer; font-size:.9rem; }
+
   main { max-width:760px; margin:0 auto; padding:32px 16px 64px; }
   h1 { font-size:1.9rem; margin:0 0 4px; }
   p.sub { color:var(--muted); margin:0 0 24px; }
@@ -21,42 +39,222 @@
   .pane b { font-size:1.2rem; color:var(--accent); }
   .pane small { color:var(--muted); }
   .pane.me { outline:2px solid var(--accent); outline-offset:-2px; }
-  section { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 20px; margin-top:24px; }
-  h2 { margin:0 0 8px; font-size:1.2rem; }
-  pre { background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:12px; overflow-x:auto; font-size:.85rem; }
-  code { font-family:ui-monospace,Menlo,monospace; }
-  a { color:var(--accent); }
+  section.card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 20px; margin-top:24px; }
+  section.card h2 { margin:0 0 8px; font-size:1.2rem; }
+  .links { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:0; padding:0; list-style:none; }
+  .links a { display:block; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 16px; text-decoration:none; color:var(--fg); }
+  .links a:hover { border-color:var(--accent); }
+  .links small { display:block; color:var(--muted); }
+
+  /* markdown view */
+  #doc[hidden], #home[hidden] { display:none; }
+  .md { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:20px 24px; overflow-wrap:anywhere; }
+  .md h1 { font-size:1.7rem; margin:.4em 0 .5em; }
+  .md h2 { font-size:1.3rem; margin:1.4em 0 .5em; padding-bottom:.25em; border-bottom:1px solid var(--line); }
+  .md h3 { font-size:1.08rem; margin:1.2em 0 .4em; }
+  .md p, .md ul, .md ol { margin:.6em 0; }
+  .md li { margin:.2em 0; }
+  .md pre { background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:12px; overflow-x:auto; font-size:.85rem; line-height:1.45; }
+  .md :not(pre) > code { background:var(--bg); border:1px solid var(--line); border-radius:4px; padding:0 4px; font-size:.88em; }
+  .md table { border-collapse:collapse; width:100%; margin:1em 0; display:block; overflow-x:auto; font-size:.92rem; }
+  .md th, .md td { border:1px solid var(--line); padding:6px 10px; text-align:left; vertical-align:top; }
+  .md th { background:var(--bg); }
+  .md blockquote { margin:1em 0; padding:.2em 1em; border-left:3px solid var(--accent); color:var(--muted); }
+  .md hr { border:0; border-top:1px solid var(--line); margin:1.5em 0; }
+  .md img { max-width:100%; }
+  .status { color:var(--muted); }
+  .fallback { color:var(--muted); font-size:.95rem; }
+
+  footer { text-align:center; color:var(--muted); font-size:.85rem; padding:24px 16px; }
 </style>
 </head>
 <body>
-<main>
-  <h1>🐴 herdr 2×2 split</h1>
-  <p class="sub">🤖 Claude commanded herdr to divide one screen into four panes.</p>
 
-  <div class="grid" role="img" aria-label="A screen split into four equal panes">
-    <div class="pane me"><b>1️⃣ w4:p1</b><small>🤖 Claude (this session)</small></div>
-    <div class="pane"><b>2️⃣ w4:p2</b><small>new shell</small></div>
-    <div class="pane"><b>3️⃣ w4:p3</b><small>new shell</small></div>
-    <div class="pane"><b>4️⃣ w4:p4</b><small>new shell</small></div>
+<header class="top">
+  <div class="bar">
+    <a class="brand" href="#/">🐴 herdr</a>
+    <nav class="menu" id="menu" aria-label="Main">
+      <a href="#/" data-page="home">🏠 Home</a>
+      <a href="#/split-panes" data-page="split-panes">🪟 Split panes</a>
+      <a href="#/use-cases" data-page="use-cases">💡 Use cases</a>
+      <a href="#/how-i-did-it" data-page="how-i-did-it">🛠️ How I did it</a>
+      <a href="#/agents" data-page="agents">🤖 AGENTS</a>
+      <a href="#/readme" data-page="readme">📖 README</a>
+      <a href="https://github.com/rifaterdemsahin/herdr" target="_blank" rel="noopener">📦 Repo</a>
+    </nav>
+    <button class="theme" id="theme" type="button" aria-label="Toggle colour theme">🌓</button>
   </div>
+</header>
 
-  <section>
-    <h2>✅ What happened</h2>
-    <p>I asked Claude to split my herdr screen into 4. Claude ran the <code>herdr pane split</code> CLI itself, with no keyboard shortcuts, and the layout came out as four equal 109×36 panes.</p>
-    <pre><code>herdr pane split w4:p1 --direction right --ratio 0.5
+<main>
+  <!-- Home -->
+  <div id="home">
+    <h1>🐴 herdr 2×2 split</h1>
+    <p class="sub">🤖 Claude commanded herdr to divide one screen into four panes.</p>
+
+    <div class="grid" role="img" aria-label="A screen split into four equal panes">
+      <div class="pane me"><b>1️⃣ w4:p1</b><small>🤖 Claude (this session)</small></div>
+      <div class="pane"><b>2️⃣ w4:p2</b><small>new shell</small></div>
+      <div class="pane"><b>3️⃣ w4:p3</b><small>new shell</small></div>
+      <div class="pane"><b>4️⃣ w4:p4</b><small>new shell</small></div>
+    </div>
+
+    <section class="card">
+      <h2>✅ What happened</h2>
+      <p>I asked Claude to split my herdr screen into 4. Claude ran the <code>herdr pane split</code> CLI itself, with no keyboard shortcuts, and the layout came out as four equal 109×36 panes.</p>
+      <pre><code>herdr pane split w4:p1 --direction right --ratio 0.5
 herdr pane split w4:p1 --direction down  --ratio 0.5
 herdr pane split w4:p2 --direction down  --ratio 0.5</code></pre>
-  </section>
+    </section>
 
-  <section>
-    <h2>🙏 Thanks</h2>
-    <p>Thanks to <b>Onuralp</b> for reminding me to use herdr. I don't remember the keyboard shortcuts, so having Claude command herdr through its CLI is perfect. 🎉</p>
-  </section>
+    <section class="card">
+      <h2>🙏 Thanks</h2>
+      <p>Thanks to <b>Onuralp</b> for reminding me to use herdr. I don't remember the keyboard shortcuts, so having Claude command herdr through its CLI is perfect. 🎉</p>
+    </section>
 
-  <section>
-    <h2>📚 More</h2>
-    <p><a href="https://github.com/rifaterdemsahin/herdr">📦 Repo</a> · <a href="https://herdr.dev">🐴 herdr.dev</a></p>
-  </section>
+    <section class="card">
+      <h2>📚 Explore</h2>
+      <ul class="links">
+        <li><a href="#/split-panes">🪟 Split panes<small>How to use <code>herdr pane split</code></small></a></li>
+        <li><a href="#/use-cases">💡 Use cases<small>Prompts that make Claude use herdr better</small></a></li>
+        <li><a href="#/how-i-did-it">🛠️ How I did it<small>How this repo was created</small></a></li>
+        <li><a href="#/agents">🤖 AGENTS<small>Conventions for AI agents</small></a></li>
+        <li><a href="#/readme">📖 README<small>Overview and links</small></a></li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>🔗 Links</h2>
+      <p><a href="https://github.com/rifaterdemsahin/herdr">📦 Repo</a> · <a href="https://herdr.dev">🐴 herdr.dev</a></p>
+    </section>
+  </div>
+
+  <!-- Markdown pages are rendered into here -->
+  <article id="doc" class="md" hidden>
+    <p class="status" id="status">⏳ Loading…</p>
+    <div id="content"></div>
+    <p class="fallback" id="fallback" hidden></p>
+  </article>
 </main>
+
+<footer>🐴 herdr notes · <a href="https://github.com/rifaterdemsahin/herdr">GitHub</a></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script>
+(function () {
+  // Markdown files in the repo, keyed by URL slug.
+  var PAGES = {
+    'split-panes':  { file: 'SPLIT_PANES.md',  title: '🪟 Split panes' },
+    'use-cases':    { file: 'USE_CASES.md',    title: '💡 Use cases' },
+    'how-i-did-it': { file: 'HOW_I_DID_IT.md', title: '🛠️ How I did it' },
+    'agents':       { file: 'AGENTS.md',       title: '🤖 AGENTS' },
+    'readme':       { file: 'README.md',       title: '📖 README' }
+  };
+  var SLUG_BY_FILE = {};
+  Object.keys(PAGES).forEach(function (slug) { SLUG_BY_FILE[PAGES[slug].file] = slug; });
+
+  var home = document.getElementById('home');
+  var doc = document.getElementById('doc');
+  var content = document.getElementById('content');
+  var status = document.getElementById('status');
+  var fallback = document.getElementById('fallback');
+
+  function currentSlug() {
+    return (location.hash || '').replace(/^#\/?/, '').trim();
+  }
+
+  function markActive(slug) {
+    document.querySelectorAll('nav.menu a[data-page]').forEach(function (a) {
+      var isActive = a.dataset.page === (slug || 'home');
+      a.classList.toggle('active', isActive);
+      if (isActive) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+  }
+
+  function fixLinks(root) {
+    root.querySelectorAll('a[href]').forEach(function (a) {
+      var href = a.getAttribute('href');
+      if (SLUG_BY_FILE[href]) {
+        a.setAttribute('href', '#/' + SLUG_BY_FILE[href]);
+      } else if (/^https?:\/\//.test(href)) {
+        a.setAttribute('target', '_blank');
+        a.setAttribute('rel', 'noopener');
+      }
+    });
+  }
+
+  function showHome() {
+    home.hidden = false;
+    doc.hidden = true;
+    document.title = 'herdr notes';
+  }
+
+  function showPage(slug) {
+    var page = PAGES[slug];
+    home.hidden = true;
+    doc.hidden = false;
+    content.innerHTML = '';
+    fallback.hidden = true;
+    status.hidden = false;
+    status.textContent = '⏳ Loading…';
+    document.title = page.title + ' · herdr notes';
+    window.scrollTo(0, 0);
+
+    fetch(page.file, { cache: 'no-cache' })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.text();
+      })
+      .then(function (text) {
+        status.hidden = true;
+        if (window.marked && window.DOMPurify) {
+          content.innerHTML = DOMPurify.sanitize(marked.parse(text, { gfm: true }));
+        } else {
+          // Renderer script blocked: show the raw markdown rather than nothing.
+          var pre = document.createElement('pre');
+          pre.textContent = text;
+          content.appendChild(pre);
+        }
+        fixLinks(content);
+      })
+      .catch(function () {
+        status.hidden = true;
+        fallback.hidden = false;
+        fallback.innerHTML = '⚠️ Could not load <code>' + page.file + '</code>. ' +
+          'Read it on <a href="https://github.com/rifaterdemsahin/herdr/blob/main/' + page.file + '" target="_blank" rel="noopener">GitHub</a>.';
+      });
+  }
+
+  function route() {
+    var slug = currentSlug();
+    markActive(slug || 'home');
+    if (!slug || slug === 'home') { showHome(); return; }
+    if (PAGES[slug]) { showPage(slug); return; }
+    location.hash = '#/';
+  }
+
+  window.addEventListener('hashchange', route);
+
+  // Theme toggle: auto -> dark -> light -> auto (stored per browser, purely cosmetic).
+  var themeBtn = document.getElementById('theme');
+  var root = document.documentElement;
+  var order = ['auto', 'dark', 'light'];
+  var current = 'auto';
+  try { current = localStorage.getItem('herdr-theme') || 'auto'; } catch (e) {}
+  applyTheme(current);
+  themeBtn.addEventListener('click', function () {
+    current = order[(order.indexOf(current) + 1) % order.length];
+    applyTheme(current);
+    try { localStorage.setItem('herdr-theme', current); } catch (e) {}
+  });
+  function applyTheme(t) {
+    if (t === 'auto') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', t);
+    themeBtn.title = 'Theme: ' + t;
+  }
+
+  route();
+})();
+</script>
 </body>
 </html>
