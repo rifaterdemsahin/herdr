@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>herdr 2x2 split</title>
+<style>
+  :root { --bg:#0f1117; --fg:#e6e8ee; --muted:#9aa3b2; --card:#181b24; --accent:#7aa2f7; --line:#2a2f3d; }
+  @media (prefers-color-scheme: light) {
+    :root { --bg:#f6f7fb; --fg:#1b1e27; --muted:#5b6475; --card:#fff; --accent:#3b5bdb; --line:#d8dce6; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.6 system-ui,sans-serif; }
+  main { max-width:760px; margin:0 auto; padding:32px 16px 64px; }
+  h1 { font-size:1.9rem; margin:0 0 4px; }
+  p.sub { color:var(--muted); margin:0 0 24px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:6px;
+          aspect-ratio:218/72; min-height:260px; background:var(--line); border:6px solid var(--line);
+          border-radius:10px; overflow:hidden; font-family:ui-monospace,Menlo,monospace; }
+  .pane { background:var(--card); padding:12px; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; font-size:.9rem; }
+  .pane b { font-size:1.2rem; color:var(--accent); }
+  .pane small { color:var(--muted); }
+  .pane.me { outline:2px solid var(--accent); outline-offset:-2px; }
+  section { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 20px; margin-top:24px; }
+  h2 { margin:0 0 8px; font-size:1.2rem; }
+  pre { background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:12px; overflow-x:auto; font-size:.85rem; }
+  code { font-family:ui-monospace,Menlo,monospace; }
+  a { color:var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>🐴 herdr 2×2 split</h1>
+  <p class="sub">🤖 Claude commanded herdr to divide one screen into four panes.</p>
+
+  <div class="grid" role="img" aria-label="A screen split into four equal panes">
+    <div class="pane me"><b>1️⃣ w4:p1</b><small>🤖 Claude (this session)</small></div>
+    <div class="pane"><b>2️⃣ w4:p2</b><small>new shell</small></div>
+    <div class="pane"><b>3️⃣ w4:p3</b><small>new shell</small></div>
+    <div class="pane"><b>4️⃣ w4:p4</b><small>new shell</small></div>
+  </div>
+
+  <section>
+    <h2>✅ What happened</h2>
+    <p>I asked Claude to split my herdr screen into 4. Claude ran the <code>herdr pane split</code> CLI itself, with no keyboard shortcuts, and the layout came out as four equal 109×36 panes.</p>
+    <pre><code>herdr pane split w4:p1 --direction right --ratio 0.5
+herdr pane split w4:p1 --direction down  --ratio 0.5
+herdr pane split w4:p2 --direction down  --ratio 0.5</code></pre>
+  </section>
+
+  <section>
+    <h2>🙏 Thanks</h2>
+    <p>Thanks to <b>Onuralp</b> for reminding me to use herdr. I don't remember the keyboard shortcuts, so having Claude command herdr through its CLI is perfect. 🎉</p>
+  </section>
+
+  <section>
+    <h2>📚 More</h2>
+    <p><a href="https://github.com/rifaterdemsahin/herdr">📦 Repo</a> · <a href="https://herdr.dev">🐴 herdr.dev</a></p>
+  </section>
+</main>
+</body>
+</html>
