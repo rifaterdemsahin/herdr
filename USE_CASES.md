@@ -67,6 +67,17 @@ Use herdr to list the panes in this tab with herdr pane list and herdr pane layo
 Do not split, close, or focus anything. Show me the pane IDs and which ones are free.
 ```
 
+### 🎨 Name and color the 8 planes
+
+```text
+Use herdr to name and color the 8 planes in this workspace. Do not split or start anything.
+Run: scripts/plane-colors.sh
+It renames panes w1:p1 to w1:p8 and reports a colored plane_* token for each one. It also adds the sidebar color row to ~/.config/herdr/config.toml, once, and reloads the config.
+Check first with: test "${HERDR_ENV:-}" = 1
+Then run: herdr pane list and show me each pane's name and color token.
+Do not touch w1:p9 or any other pane.
+```
+
 ### 🧹 Clean up what you created
 
 ```text
