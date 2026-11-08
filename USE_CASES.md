@@ -27,6 +27,53 @@ Claude Code can drive herdr for you. Type the prompts below into Claude Code and
 | 🧹 Tidy up | "Close only the panes you created in this tab." | `herdr pane close <id>` |
 | 🗂️ New workspace | "Create a herdr workspace called `api-work` with a tab for the server and one for tests." | `herdr workspace create`, `herdr tab create` |
 
+## 📋 Copy-ready prompts
+
+Each block has a 📋 Copy button. Paste the prompt into Claude Code in your herdr pane.
+
+### 🧩 8 planes, one agent each
+
+```text
+Use herdr to split my current pane into 8 planes, one per name below.
+Layout: Split into an even grid. Avoid panes narrower than about 40 columns or shorter than 10 rows.
+Create each split with: herdr pane split --current --direction right|down --cwd "$PWD" --no-focus
+Read each new pane ID from .result.pane.pane_id in the JSON. Do not guess IDs.
+
+Planes:
+1. real → claude
+2. environment → antigravity
+3. simulation → kilo
+4. ui → mimo
+5. symbols → claude
+6. semblance → antigravity
+7. test → kilo
+8. orchestrator → mimo
+
+Start the agents ONE AT A TIME, in plane order. Wait until each one is idle before starting the next.
+- claude / antigravity / kilo: herdr agent start <plane> --kind <claude|agy|kilo> --pane <pane-id>, then herdr agent prompt <plane> "<task>" --wait --timeout 120000
+- mimo is not a herdr agent kind: herdr pane run <pane-id> "mimo", then send its task with herdr pane send-text <pane-id> "<task>"
+
+Rules:
+- If an agent is blocked on an approval or question, show me the prompt before answering it.
+- Do not close or refocus panes I did not ask you to touch.
+- Check first with: test "${HERDR_ENV:-}" = 1
+- Finish by listing each plane with its name, pane ID and agent state.
+```
+
+### 🔍 Read-only check
+
+```text
+Use herdr to list the panes in this tab with herdr pane list and herdr pane layout.
+Do not split, close, or focus anything. Show me the pane IDs and which ones are free.
+```
+
+### 🧹 Clean up what you created
+
+```text
+Use herdr to close only the panes you created in this session. Read their IDs from the JSON
+you got when you made them. Leave every other pane alone and tell me which ones you closed.
+```
+
 ## 🧠 Make Claude use herdr by default
 
 Add a section like this to your project's `CLAUDE.md` or `AGENTS.md`, so Claude follows the same rules every session:

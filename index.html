@@ -64,6 +64,11 @@
   .md img { max-width:100%; }
   .status { color:var(--muted); }
 
+  /* copy buttons on code blocks */
+  .md pre { position:relative; padding-top:34px; }
+  .copy-btn { position:absolute; top:6px; right:6px; background:var(--card); color:var(--fg); border:1px solid var(--line); border-radius:6px; padding:2px 8px; font:.78rem system-ui,sans-serif; cursor:pointer; }
+  .copy-btn:hover { border-color:var(--accent); color:var(--accent); }
+
   /* prompt helper */
   #helper[hidden], .plane[hidden] { display:none; }
   .helper-grid { display:grid; gap:8px; margin:12px 0; }
@@ -223,6 +228,43 @@ herdr pane split w4:p2 --direction down  --ratio 0.5</code></pre>
     });
   }
 
+  function copyText(text, btn) {
+    var done = function () {
+      btn.textContent = '✅ Copied';
+      setTimeout(function () { btn.textContent = '📋 Copy'; }, 1500);
+    };
+    var fallbackCopy = function () {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) { btn.textContent = '⚠️ Select manually'; }
+      document.body.removeChild(ta);
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(done, fallbackCopy);
+    } else {
+      fallbackCopy();
+    }
+  }
+
+  function addCopyButtons(root) {
+    root.querySelectorAll('pre').forEach(function (pre) {
+      var code = pre.querySelector('code');
+      var text = (code || pre).textContent.replace(/\n$/, '');
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'copy-btn';
+      btn.textContent = '📋 Copy';
+      btn.setAttribute('aria-label', 'Copy code block to clipboard');
+      btn.addEventListener('click', function () { copyText(text, btn); });
+      pre.appendChild(btn);
+    });
+  }
+
   function fixLinks(root) {
     root.querySelectorAll('a[href]').forEach(function (a) {
       var href = a.getAttribute('href');
@@ -270,6 +312,7 @@ herdr pane split w4:p2 --direction down  --ratio 0.5</code></pre>
           content.appendChild(pre);
         }
         fixLinks(content);
+        addCopyButtons(content);
       })
       .catch(function () {
         status.hidden = true;
@@ -451,6 +494,7 @@ herdr pane split w4:p2 --direction down  --ratio 0.5</code></pre>
     themeBtn.title = 'Theme: ' + t;
   }
 
+  addCopyButtons(home);
   route();
 })();
 </script>
